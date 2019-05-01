@@ -12,11 +12,10 @@ class Memo:
 
 def setup():
   fullScreen()
-  background(33)
+  background(loadImage(path + "/Images/" + "menu_display" + ".png"))
 
 def draw():
-    pass
+    cursor(loadImage(path + "/Images/cursor.png"), 0, 0)
 
 def mouseClicked():
     pass
-    
