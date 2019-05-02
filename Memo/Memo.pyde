@@ -12,37 +12,44 @@ class Game:
         self.musclick = audioPlayer.loadFile(path + "/Sounds/click.wav")
         self.muswin = audioPlayer.loadFile(path + "/Sounds/win.wav")
         
-        #Sound Effects for Memo Class (Inheritance)    
-        self.musmh = audioPlayer.loadFile(path + "/Sounds/memo_h.wav")
-        self.musbc0 = audioPlayer.loadFile(path + "/Sounds/first_pick.wav")
-        self.musbc1 = audioPlayer.loadFile(path + "/Sounds/bad_second_pick.wav")
-        self.musbc2 = audioPlayer.loadFile(path + "/Sounds/good_second_pick.wav")
-        
         #Backgrounds
-        self.mainmenu = loadImage(path + "/Images/main_menu.png")
-        self.helpmenu = loadImage(path + "/Images/help_menu.png")
-        self.gamemenu = loadImage(path + "/Images/game.png")
+        self.menubg = loadImage(path + "/Images/main_menu.png")
+        self.helpbg = loadImage(path + "/Images/help_menu.png")
+        self.gamebg = loadImage(path + "/Images/game.png")
+        self.lbbg = loadImage(path + "/Images/leaderboards.png")
         
         #Big Buttons
         self.leaderboardsbutton = loadImage(path + "/Images/icon_leaderboards.png")
-        self.leaderboardsbutton_h = loadImage(path + "/Images/icon_leaderboards_h.png")
+        self.leaderboardsbutton_h = loadImage(path + "/Images/icon_leaderboards_h.png") #image(self.leaderboardsbutton_h, 511, 540)
         self.gamebutton = loadImage(path + "/Images/icon_start.png")
-        self.gamebutton_h = loadImage(path + "/Images/icon_start_h.png")
+        self.gamebutton_h = loadImage(path + "/Images/icon_start_h.png") #image(self.gamebutton_h, 761, 540)
         self.exitbutton = loadImage(path + "/Images/icon_exit.png")
-        self.exitbutton_h = loadImage(path + "/Images/icon_exit_h.png")
+        self.exitbutton_h = loadImage(path + "/Images/icon_exit_h.png") #image(self.exitbutton_h, 1011, 540)
         
         #Small Buttons
         self.helpbutton = loadImage(path + "/Images/icon_help.png")
-        self.helpbutton_h = loadImage(path + "/Images/icon_help_h.png")
+        self.helpbutton_h = loadImage(path + "/Images/icon_help_h.png") #image(self.helpbutton_h, 724, 989)
         self.mutebutton = loadImage(path + "/Images/icon_mute.png")
-        self.mutebutton_h = loadImage(path + "/Images/icon_mute_h.png")
+        self.mutebutton_h = loadImage(path + "/Images/icon_mute_h.png") #image(self.mutebutton_h, 960, 989) 
         self.backtomenubutton = loadImage(path + "/Images/icon_backtomenu.png")
-        self.backtomenubutton_h = loadImage(path + "/Images/icon_backtomenu_h.png")
+        self.backtomenubutton_h = loadImage(path + "/Images/icon_backtomenu_h.png") #image(self.backtomenubutton_h, 1196, 989)
         
-        #Variables
+        #Button Variables
+        self.LBbutton_isvisible = True
+        self.GameButton_isvisible = True
+        self.ExitButton_isvisible = True
+        self.HelpButton_isvisible = True
+        self.SoundButton_isvisible = True
+        self.MenuButton_isvisible = False
+        
+        #Game Variables
+        self.inmenu = True
+        self.inhelp = False
+        self.inmemo = False
+        self.inleaderboards = False
         self.mute = False
-        self.help = False
         self.win = False
+        self.board = []
 
     def musbg_play(self):
             self.musbg.rewind()
@@ -74,35 +81,167 @@ class Game:
         if self.mute == False:
             self.musclick.rewind()
             self.musclick.play()
-        self.help = True
-        image(self.helpmenu, 960, 540)
+        self.ihhelp = True
+        self.inmemo = False
+        self.inleaderboards = False
+        self.inmenu = False
+        self.display_help()
         
     def menubuttonclick(self):
         if self.mute == False:
             self.musclick.rewind()
             self.musclick.play()
-        self.help = False
-        image(self.mainmenu, 960, 540)
+        self.ihhelp = False
+        self.inmemo = False
+        self.inleaderboards = False
+        self.inmenu = True
+        self.display_menu()
 
-class Memo(Game):
+    def LBbuttonclick(self):
+        if self.mute == False:
+            self.musclick.rewind()
+            self.musclick.play()
+        self.ihhelp = False
+        self.inmemo = False
+        self.inleaderboards = True
+        self.inmenu = False
+        self.display_lb()
     
-    def __init__(self, rowid, colid, id):
+    def gamebuttonclick(self):
+        if self.mute == False:
+            self.musclick.rewind()
+            self.musclick.play()
+        self.ihhelp = False
+        self.inmemo = True
+        self.inleaderboards = False
+        self.inmenu = False
+        self.display_game()
+    
+    def exitbuttonclick(self):
+        exit()
+        
+    def drawboard(self):
+        for rowid in range(3):
+            row = []
+            for colid in range(6):
+                row.append(Memo(rowid, colid))
+            self.board.append(row)
+    
+    def display_menu(self):
+        self.LBbutton_isvisible = True
+        self.GameButton_isvisible = True
+        self.ExitButton_isvisible = True
+        self.HelpButton_isvisible = True
+        self.SoundButton_isvisible = True
+        self.MenuButton_isvisible = False
+        imageMode(CENTER)
+        image(self.menubg, 960, 540)
+        image(self.leaderboardsbutton, 511, 540)
+        image(self.gamebutton, 960, 540)
+        image(self.exitbutton, 1409, 540)
+        image(self.helpbutton, 724, 989)
+        image(self.mutebutton, 960, 989)
+        image(self.backtomenubutton, 1196, 989)
+    
+    def display_help(self):
+        self.LBbutton_isvisible = False
+        self.GameButton_isvisible = False
+        self.ExitButton_isvisible = False
+        self.HelpButton_isvisible = False
+        self.SoundButton_isvisible = True
+        self.MenuButton_isvisible = True
+        imageMode(CENTER)
+        image(self.menubg, 960, 540)
+        image(self.helpbg, 960, 540)
+        image(self.mutebutton, 960, 989)
+        image(self.backtomenubutton, 1196, 989)
+    
+    def display_lb(self):
+        self.LBbutton_isvisible = False
+        self.GameButton_isvisible = False
+        self.ExitButton_isvisible = False
+        self.HelpButton_isvisible = False
+        self.SoundButton_isvisible = True
+        self.MenuButton_isvisible = True
+        imageMode(CENTER)
+        image(self.lbbg, 960, 540)
+        image(self.mutebutton, 960, 989)
+        image(self.backtomenubutton, 1196, 989)
+    
+    def display_game(self):
+        self.LBbutton_isvisible = False
+        self.GameButton_isvisible = False
+        self.ExitButton_isvisible = False
+        self.HelpButton_isvisible = False
+        self.SoundButton_isvisible = True
+        self.MenuButton_isvisible = True
+        imageMode(CENTER)
+        image(self.gamebg, 960, 540)
+        image(self.mutebutton, 960, 989)
+        image(self.backtomenubutton, 1196, 989)
+    
+    def highlight_and_sound(self):
+        imageMode(CENTER)
+        if self.LBbutton_isvisible == True and 371 <= mouseX <= 651 and 380 <= mouseY <= 700:
+            image(self.leaderboardsbutton_h, 511, 540)
+            self.musbh.play()
+        else:
+            self.musbh.rewind()
+                
+            
+            
+
+class Memo():
+    
+    def __init__(self, rowid, colid):
+        #Variables
         self.rowid = rowid
         self.colid = colid
         self.id = id
-        self.img = loadImage(path + "/Images/" + str(id) + ".png")
         
+        #Images
+        self.img = loadImage(path + "/Images/" + str(id) + ".png")
+        self.frame = loadImage(path + "/Images/frame.png")
+        self.hidden = loadImage(path + "/Images/hidden.png")
+        self.highlight = loadImage(path + "/Images/hidden_highlight.png")
+        
+        #Sound Effects for Memo Class    
+        self.musmh = audioPlayer.loadFile(path + "/Sounds/memo_h.wav")
+        self.musbc0 = audioPlayer.loadFile(path + "/Sounds/first_pick.wav")
+        self.musbc1 = audioPlayer.loadFile(path + "/Sounds/bad_second_pick.wav")
+        self.musbc2 = audioPlayer.loadFile(path + "/Sounds/good_second_pick.wav")
+   
+def display_frames():
+    if game.inmemo == True:
+        for rowid in range(3):
+            for colid in range(6):
+                imageMode(CENTER)
+                image(game.board[rowid][colid].frame, 335 + 250 * colid, 280 + 250 * rowid)
+    else:
+        return
+
 game = Game()
-game.musbg_play()
 
 def setup():
     fullScreen()
-    background(game.mainmenu)
+    frameRate(360)
+    game.musbg_play()
+    game.drawboard()
+    game.display_menu()
+    
 
 def draw():
     imageMode(CORNER)
     cursor(loadImage(path + "/Images/cursor.png"), 0, 0)
-    imageMode(CENTER)
+    if game.inmenu == True:
+        game.display_menu()
+    if game.inleaderboards == True:
+        game.display_lb()
+    if game.inmemo == True:
+        game.display_game()
+    if game.inhelp == True:
+        game.display_help()    
+    game.highlight_and_sound()
 
 def mouseClicked():
-    game.helpbuttonclick()
+    game.exitbuttonclick()
