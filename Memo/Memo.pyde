@@ -1,5 +1,5 @@
 add_library("minim")
-import os, random
+import os, random, time
 path = os.getcwd()
 audioPlayer = Minim(this)
 
@@ -25,6 +25,7 @@ class Game:
         self.helpbg = loadImage(path + "/Images/help_menu.png")
         self.gamebg = loadImage(path + "/Images/game.png")
         self.lbbg = loadImage(path + "/Images/leaderboards.png")
+        self.swbg = loadImage(path + "/Images/score_window.png")
         
         #Big Buttons
         self.leaderboardsbutton = loadImage(path + "/Images/icon_leaderboards.png")
@@ -56,15 +57,17 @@ class Game:
         self.SoundButton_ish = False
         self.MenuButton_ish = False
         
-        
         #Game Variables
         self.inmenu = True
         self.inhelp = False
         self.inmemo = False
         self.inleaderboards = False
         self.mute = False
+        self.displayname = False
         self.win = False
         self.board = []
+        self.name = ''
+        self.score = 0
 
     def musbg_play(self):
             self.musbg.rewind()
@@ -105,12 +108,13 @@ class Game:
         self.inmenu = False
         
     def menubuttonclick(self):
-        if self.inmemo == False:
+        if self.inmemo == False or game.win == True:
             self.musclick.rewind()
             self.musclick.play()
         else:
             self.musqg.rewind()
             self.musqg.play()
+        game.displayname = False
         self.inhelp = False
         self.inmemo = False
         self.inleaderboards = False
@@ -124,14 +128,21 @@ class Game:
         self.inmemo = False
         self.inleaderboards = True
         self.inmenu = False
+        update_lb()
     
     def gamebuttonclick(self):
         self.mussg.rewind()
         self.mussg.play()
+        self.win = False
+        self.name = ''
+        self.score = 0
         self.inhelp = False
         self.inmemo = True
         self.inleaderboards = False
         self.inmenu = False
+        
+        starting_time = time.time()
+        global starting_time
     
     def exitbuttonclick(self):
         exit()
@@ -189,11 +200,17 @@ class Game:
         self.ExitButton_isvisible = False
         self.HelpButton_isvisible = False
         self.SoundButton_isvisible = True
-        self.MenuButton_isvisible = True
+        if game.win == False:
+            self.MenuButton_isvisible = True
+        elif game.win == True:
+            self.MenuButton_isvisible = False
         imageMode(CENTER)
         image(self.gamebg, 960, 540)
         image(self.mutebutton, 960, 989)
-        image(self.backtomenubutton, 1196, 989)
+        if game.win == False:
+            image(self.backtomenubutton, 1196, 989)
+        elif game.win == True:
+            pass
     
     def highlight_and_sound(self):
         self.LBbutton_ish = False
@@ -259,6 +276,7 @@ class Memo():
 def assign_id():
     
     id_list = []
+    
     for i in range(9):
         a = random.randint(1, 40)
         while a in id_list:
@@ -269,11 +287,11 @@ def assign_id():
     while len(id_list) != 0:
         r = random.randint(0, 2)
         c = random.randint(0, 5)
-        b = id_list.pop(random.randrange(len(id_list)))
+        info = id_list.pop(random.randrange(len(id_list)))
         while game.board[r][c].is_assigned == True:
             r = random.randint(0, 2)
             c = random.randint(0, 5)
-        game.board[r][c].id = b
+        game.board[r][c].id = info
         game.board[r][c].is_assigned = True
 
 def clear_id():
@@ -290,13 +308,55 @@ def clear_is_visible():
     for rowid in range(3):
         for colid in range(6):
             game.board[rowid][colid].is_visible = False 
+
+def ask_for_name():
+    if game.displayname == True:
+        imageMode(CENTER)
+        image(game.swbg, 960, 540)
+        textAlign(LEFT)
+        text(game.name, 860, 720)
+    else:
+        pass
+        
+def save_score():
+     file = open("scores.txt", "a")
+     file.write('|' + game.name)
+     file.write('|' + str(game.score))
+     file.close()
+
+def update_lb():
+    file = open("scores.txt", "r")
+    contents = file.read().split('|')
+    file.close()
+    
+    leaderboards_list = []
+    for M in range(len(contents)/2):
+        mini_list = []
+        mini_list.append(contents[2 * M])
+        mini_list.append(contents[1 + M])
+        leaderboards_list.append(mini_list)
+
+def display_time():
+    if game.win == True:
+        game.score = stop_time - starting_time
+        textAlign(CENTER)
+        text(game.score, 960, 90)
+    else:
+        text(time.time() - starting_time, 840, 90)
    
 def display_hidden():
     for rowid in range(3):
         for colid in range(6):
             imageMode(CENTER)
             image(game.board[rowid][colid].hidden, 335 + 250 * colid, 280 + 250 * rowid)
-            
+
+def display_img():
+    for rowid in range(3):
+        for colid in range(6):
+            imageMode(CENTER)
+            if game.board[rowid][colid].is_visible == True or game.board[rowid][colid].is_chosen == True:
+                image(game.board[rowid][colid].show_image(), 335 + 250 * colid, 280 + 250 * rowid)
+                        
 def highlight_and_sound_memo():
     for rowid in range(3): 
         for colid in range(6): 
@@ -318,13 +378,6 @@ def highlight_and_sound_memo():
                 highlighted = True
     if highlighted == False:
         game.musmh.rewind()
-
-def display_img():
-    for rowid in range(3):
-        for colid in range(6):
-            imageMode(CENTER)
-            if game.board[rowid][colid].is_visible == True or game.board[rowid][colid].is_chosen == True:
-                image(game.board[rowid][colid].show_image(), 335 + 250 * colid, 280 + 250 * rowid)
 
 def check_is_chosen():
     chosen = 0
@@ -364,8 +417,12 @@ def check_win():
             if game.board[rowid][colid].is_visible == False:
                 uncovered += 1
     if uncovered == 0:
+        game.win = True
+        game.displayname = True
         game.muswin.rewind()
         game.muswin.play()
+        stop_time = time.time()
+        global stop_time
     else:
         pass
                         
@@ -373,7 +430,9 @@ game = Game()
 
 def setup():
     fullScreen()
-    frameRate(700)
+    font = loadFont("SlugfestNF-70.vlw")
+    textFont(font, 70)
+    frameRate(60)
     game.musbg_play()
     game.drawboard()
 
@@ -389,9 +448,33 @@ def draw():
         display_hidden()
         highlight_and_sound_memo()
         display_img()
+        display_time()
+        if game.win == True:
+            ask_for_name()
+        else:
+            pass
     elif game.inhelp == True:
         game.display_help() 
     game.highlight_and_sound()
+
+def keyPressed():
+    if game.displayname == True:
+        if key == BACKSPACE or key == DELETE:
+            game.name = game.name[0:len(game.name)-1]
+        elif key == ENTER:
+            save_score()
+            game.menubuttonclick()
+        elif len(game.name) < 20:
+            if str(key) == '65535':
+                return
+            elif str(key).upper() in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',' ']:
+                game.name += str(key)
+            else:
+                pass
+        else:
+            pass
+    else:
+        pass
 
 def mouseClicked():
     imageMode(CENTER)
