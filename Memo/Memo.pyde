@@ -26,6 +26,7 @@ class Game:
         self.gamebg = loadImage(path + "/Images/game.png")
         self.lbbg = loadImage(path + "/Images/leaderboards.png")
         self.swbg = loadImage(path + "/Images/score_window.png")
+        self.twbg = loadImage(path + "/Images/time_window.png")
         
         #Big Buttons
         self.leaderboardsbutton = loadImage(path + "/Images/icon_leaderboards.png")
@@ -193,6 +194,7 @@ class Game:
         image(self.lbbg, 960, 540)
         image(self.mutebutton, 960, 989)
         image(self.backtomenubutton, 1196, 989)
+        display_lb_scores()
     
     def display_game(self):
         self.LBbutton_isvisible = False
@@ -200,17 +202,15 @@ class Game:
         self.ExitButton_isvisible = False
         self.HelpButton_isvisible = False
         self.SoundButton_isvisible = True
-        if game.win == False:
-            self.MenuButton_isvisible = True
-        elif game.win == True:
-            self.MenuButton_isvisible = False
         imageMode(CENTER)
         image(self.gamebg, 960, 540)
         image(self.mutebutton, 960, 989)
+        image(self.twbg, 960, 540)
         if game.win == False:
+            self.MenuButton_isvisible = True
             image(self.backtomenubutton, 1196, 989)
         elif game.win == True:
-            pass
+            self.MenuButton_isvisible = False
     
     def highlight_and_sound(self):
         self.LBbutton_ish = False
@@ -314,7 +314,16 @@ def ask_for_name():
         imageMode(CENTER)
         image(game.swbg, 960, 540)
         textAlign(LEFT)
+        fill(250)
         text(game.name, 860, 720)
+    else:
+        pass
+
+def show_score():
+    if game.displayname == True:
+        imageMode(CENTER)
+        image(game.twbg, 960, 540)
+        display_time()
     else:
         pass
         
@@ -324,25 +333,68 @@ def save_score():
      file.write('|' + str(game.score))
      file.close()
 
+def sort_lists(list1, list2): 
+    pair = zip(list2, list1) 
+    output = [x for _, x in sorted(pair)]
+    return output  
+
 def update_lb():
     file = open("scores.txt", "r")
     contents = file.read().split('|')
     file.close()
+    contents = contents[2:]
     
+    names_list = []
+    scores_list = []
     leaderboards_list = []
-    for M in range(len(contents)/2):
-        mini_list = []
-        mini_list.append(contents[2 * M])
-        mini_list.append(contents[1 + M])
-        leaderboards_list.append(mini_list)
+
+    for i in range(len(contents)/2):
+        name = contents[2 * i]
+        names_list.append(name)
+        score = contents[1 + 2 * i]
+        scores_list.append(score)
+    
+    for i in range(len(scores_list)):
+        scores_list[i] = round(float(scores_list[i]), 3)
+    
+    sorted_names_list = sort_lists(names_list, scores_list)
+    sorted_scores_list = sorted(scores_list)
+    
+    for i in range(len(sorted_names_list)):
+        lb_score = []
+        lb_score.append(sorted_names_list[i])
+        lb_score.append(sorted_scores_list[i])
+        leaderboards_list.append(lb_score)
+    leaderboards_list = leaderboards_list[:7]
+
+    global leaderboards_list, sorted_scores_list
+
+def display_lb_scores():
+    fill(104, 0 ,114)
+    place = 1
+    for i in range(len(leaderboards_list)):
+        textAlign(CENTER)
+        if i == 0:
+            text(place, 500, 430 + i * 80)
+        elif leaderboards_list[i][1] != leaderboards_list[i-1][1]:
+            place += 1
+            text(place, 500, 430 + i * 80)
+        elif leaderboards_list[i][1] == leaderboards_list[i-1][1]:
+            text(place, 500, 430 + i * 80)
+        text(leaderboards_list[i][0], 960, 430 + i * 80)
+        textAlign(LEFT)
+        text(leaderboards_list[i][1], 1300 , 430 + i * 80) 
+        
 
 def display_time():
+    fill(250)
     if game.win == True:
         game.score = stop_time - starting_time
         textAlign(CENTER)
-        text(game.score, 960, 90)
+        text(game.score, 960, 95)
     else:
-        text(time.time() - starting_time, 840, 90)
+        textAlign(CENTER)
+        text(time.time() - starting_time, 960, 95)
    
 def display_hidden():
     for rowid in range(3):
@@ -451,23 +503,28 @@ def draw():
         display_time()
         if game.win == True:
             ask_for_name()
+            show_score()
         else:
             pass
     elif game.inhelp == True:
         game.display_help() 
     game.highlight_and_sound()
 
-def keyPressed():
+def keyReleased():
     if game.displayname == True:
         if key == BACKSPACE or key == DELETE:
+            game.musmh.rewind()
+            game.musmh.play()
             game.name = game.name[0:len(game.name)-1]
         elif key == ENTER:
             save_score()
             game.menubuttonclick()
-        elif len(game.name) < 20:
+        elif len(game.name) < 11:
             if str(key) == '65535':
                 return
             elif str(key).upper() in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',' ']:
+                game.musmh.rewind()
+                game.musmh.play()
                 game.name += str(key)
             else:
                 pass
